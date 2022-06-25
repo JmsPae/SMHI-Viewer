@@ -21,6 +21,7 @@ import { onGetData, onStationData } from './events';
 
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables)
+Chart.defaults.color = '#FFFFFF'
 
 
 function httpGetAsync(theUrl, callback) {
@@ -50,7 +51,7 @@ function formatUnixTime(timestamp) {
     if (diff.getHours() < 2) {
         return diff.getMinutes() + ((diff.getMinutes() > 1) ? " minutes ago." : " minute ago.");
     }
-    return (diff.getHours()-1) + ((diff.getHours() > 2) ? " hours ago." : " hours ago.");
+    return (diff.getHours()-1) + (((diff.getHours()-1) > 1) ? " hours ago." : " hours ago.");
 }
 
 function lerpCols(col2, col1, x) {

@@ -2,7 +2,7 @@ import Point from 'ol/geom/Point';
 import Feature from 'ol/Feature';
 import * as olProj from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
-import { Chart } from 'chart.js';
+import { Chart, Utils } from 'chart.js';
 
 function onStationData(response) {
     var stationData = JSON.parse(response)['value'];
@@ -27,7 +27,7 @@ function onStationData(response) {
         labels: dates,
         datasets: [{
             label: '°C',
-            backgroundColor: 'rgb(50, 50, 50)',
+            backgroundColor: 'rgb(100, 100, 100)',
             borderColor: 'rgb(50, 50, 50)',
             data: values,
         }]
@@ -37,8 +37,28 @@ function onStationData(response) {
         type: 'line',
         data: data,
         options: {
-            lineTension: 0.5
+            lineTension: 0.5,
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Grid Line Settings'
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: "#3d3d3d"
+                    }
+                },
+                y: {
+                    grid: {
+                        color: "#3d3d3d"
+                    }
+                }
+            }
         }
+        
     };
 
     const myChart = new Chart(
