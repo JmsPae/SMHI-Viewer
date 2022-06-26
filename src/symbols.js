@@ -43,13 +43,13 @@ const TemperatureSymbolNear = function(feature) {
             image: new RegularShape({
                 fill: new Fill({color: 'red'}),
                 stroke: new Stroke({
-                    color: lerpPalette(feature.get('stationValue') / 30), 
+                    color: lerpPalette(feature.get('stationValue') / 35), 
                     width: 3
                 }),
                 points: 4,
                 radius: 10,
                 radius2: 0,
-                angle: (feature.get('stationValue') / 30) * (Math.PI/4),
+                angle: (feature.get('stationValue') / 35) * (Math.PI/4),
             }),
             text: new Text({
                 font: '20px sans',
@@ -57,7 +57,7 @@ const TemperatureSymbolNear = function(feature) {
                 offsetX: 30,
                 offsetY: 20,
                 fill: new Fill({
-                  color: lerpPalette(feature.get('stationValue') / 30)
+                  color: lerpPalette(feature.get('stationValue') / 35)
                 })
             }),
         });
@@ -69,13 +69,13 @@ const TemperatureSymbol = function(feature) {
             image: new RegularShape({
                 fill: new Fill({color: 'red'}),
                 stroke: new Stroke({
-                    color: lerpPalette(feature.get('stationValue') / 30), 
+                    color: lerpPalette(feature.get('stationValue') / 35), 
                     width: 3
                 }),
                 points: 4,
                 radius: 10,
                 radius2: 0,
-                angle: (feature.get('stationValue') / 30) * (Math.PI/4),
+                angle: (feature.get('stationValue') / 35) * (Math.PI/4),
             })
         });
     return [cross];

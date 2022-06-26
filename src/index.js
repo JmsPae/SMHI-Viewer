@@ -10,7 +10,6 @@ import XYZ from 'ol/source/XYZ';
 import View from 'ol/View';
 import * as olProj from 'ol/proj';
 
-import { TemperatureSymbol, TemperatureSymbolNear } from './symbols';
 import { Datasets, CurrentDataset } from './datasets';
 
 import { httpGetAsync, onGetData, onStationData, onMapSingleClick } from './events';
@@ -26,7 +25,7 @@ var dataSource = new VectorSource({
 
 var dataLayer = new VectorLayer({
     source : dataSource,
-    style : TemperatureSymbol
+    style : Datasets[CurrentDataset].symbol
 })
 
 
@@ -73,5 +72,5 @@ map.on('singleclick', function(evt) {
 
 
 
-httpGetAsync("https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/"+CurrentDataset+"/station-set/all/period/latest-hour/data.json", (response)=>onGetData(response, dataSource));
+httpGetAsync("https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/"+Object.keys(Datasets[CurrentDataset].parameters)[0]+"/station-set/all/period/latest-hour/data.json", (response)=>onGetData(response, dataSource));
 
