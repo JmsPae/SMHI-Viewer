@@ -20,8 +20,8 @@ body {
 }
 
 #overlay {
-    position: fixed; /* Sit on top of the page content */
-    display: block; /* Hidden by default */
+    position: fixed; 
+    display: block; 
     top: 5px;
     right: 5px;
     bottom: 30px;
@@ -30,11 +30,15 @@ body {
 
     padding: 10px;
 
-    background-color: rgba(0,0,0,0.9); /* Black background with opacity */
-    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
-  }
+    overflow-y: scroll;
+    background-color: rgba(0,0,0,0.9);
+    z-index: 2; 
+}
 
-.ol-popup {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    color: black;
+#chart-wrapper {
+    height: 200px;
+}
+
+.titleInfo {
+    border-bottom: 3px solid #bbb;
 }

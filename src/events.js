@@ -4,6 +4,28 @@ import * as olProj from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { Chart, Utils } from 'chart.js';
 
+function httpGetAsync(theUrl, callback) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true);
+    xmlHttp.send(null);
+}
+
+function formatUnixTime(timestamp) {
+    var date = new Date(timestamp);
+    var now = new Date().getTime();
+    var diff = new Date(now - date.getTime());
+
+
+    if (diff.getHours() < 2) {
+        return diff.getMinutes() + ((diff.getMinutes() > 1) ? " minutes ago." : " minute ago.");
+    }
+    return (diff.getHours()-1) + (((diff.getHours()-1) > 1) ? " hours ago." : " hours ago.");
+}
+
 function onStationData(response) {
     var stationData = JSON.parse(response)['value'];
 
@@ -39,10 +61,11 @@ function onStationData(response) {
         options: {
             lineTension: 0.5,
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 title: {
                     display: true,
-                    text: 'Grid Line Settings'
+                    text: 'Hourly'
                 }
             },
             scales: {
@@ -67,6 +90,39 @@ function onStationData(response) {
     );
 }
 
+function onMapSingleClick(evt, map) {
+    var feat = null;
+    
+    map.forEachFeatureAtPixel(evt.pixel, 
+        function(feature, layer) {
+            feat = feature;
+        },
+        { hitTolerance: 5 }
+    );
+
+    if (feat != null) {
+        let str = `
+        <div>
+            <b>${feat.get('stationName')}</b><br>
+            ${feat.get('stationValue')}°C<br>
+            Quality: ${((feat.get('stationValueQuality') == 'G') ? "Checked and approved" : "Unchecked/Aggregated")}<br>
+            ${formatUnixTime(feat.get('stationValueDate'))}<br>
+        </div>
+        <div id="chart-wrapper"><canvas id="dataChart"></canvas></div>
+        `;
+        
+        document.getElementById('data').innerHTML = str;
+
+        httpGetAsync('https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/'+feat.get('stationId')+'/period/latest-day/data.json', onStationData);
+
+
+        
+    }
+    else {
+        document.getElementById('data').innerHTML = ""
+    }
+}
+
 function onGetData(response, vectorSource) {
     var station_list = JSON.parse(response)['station'];
 
@@ -75,13 +131,14 @@ function onGetData(response, vectorSource) {
             var station = station_list[key];
             if (station['value'] != null) {
 
+                var idx = station['value'].length - 1;
                 vectorSource.addFeature(new Feature({
                     geometry: new Point(olProj.fromLonLat([station['longitude'], station['latitude']])),
                     stationId: station['key'],
                     stationName: station['name'],
-                    stationValue: station['value'][0]['value'],
-                    stationValueDate: station['value'][0]['date'],
-                    stationValueQuality: station['value'][0]['quality']
+                    stationValue: station['value'][idx]['value'],
+                    stationValueDate: station['value'][idx]['date'],
+                    stationValueQuality: station['value'][idx]['quality']
                 }));
                 
                 //console.log(station);
@@ -90,4 +147,4 @@ function onGetData(response, vectorSource) {
     }
 }
 
-export {onGetData, onStationData};
+export {onGetData, onStationData, onMapSingleClick, httpGetAsync};

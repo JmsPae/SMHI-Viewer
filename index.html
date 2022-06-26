@@ -15,15 +15,27 @@
         <div id="map"></div>
 
         <div id="overlay">
-            <p>
-                <h2>
-                    SMHI Station Viewer
-                </h2>
-                Viewer for the various APIs available from the Swedish Meteorological and Hydrological Institute (SMHI). **WORK IN PROGRESS**
-            </p>
-            <div id="data">
-                
+            <div  class="titleInfo">
+                <p>
+                    <h2>
+                        SMHI Station Viewer
+                    </h2>
+                    Viewer for the various APIs available from the Swedish Meteorological and Hydrological Institute (SMHI). **WORK IN PROGRESS**
+                </p>
             </div>
+            <p>
+                <label for="dataset-select">Dataset</label>
+
+                <select name="dataset" id="dataset-select">
+                    <option value="1">Air temperature | Momentary | Hourly</option>
+                </select>
+
+                <div id="data">
+                    Test
+                </div>
+                aas
+                sda
+            </p>
         </div>
 
         <script src="./dist/main.js"></script>
