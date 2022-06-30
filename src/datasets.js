@@ -1,4 +1,4 @@
-import { TemperatureSymbol, TemperatureSymbolNear } from "./symbols";
+import { TemperatureSymbol, TemperatureSymbolNear, RadiationSymbol } from "./symbols";
 
 const Datasets = { 
 
@@ -17,7 +17,24 @@ const Datasets = {
                 timeframe: 'Daily'
             }
         }
-    }
+    },
+    'radiation': {
+        unit: 'W/m²',
+        symbol: RadiationSymbol,
+        symbolNear: RadiationSymbol,
+
+        parameters: {//IDs according to the SMHI API specifications
+            '11': {
+                period: 'latest-day',
+                timeframe: 'Hourly',
+            },
+            '24': {
+                period: 'latest-day',
+                timeframe: 'Hourly',
+            }
+        }
+    },
+    
 };
 
 var CurrentDataset = 'airTemperature';

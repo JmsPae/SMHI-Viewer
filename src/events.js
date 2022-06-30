@@ -139,6 +139,7 @@ function onMapSingleClick(evt, map) {
 }
 
 function onGetData(response, vectorSource) {
+    vectorSource.clear();
     var station_list = JSON.parse(response)['station'];
 
     for (var key in station_list) {

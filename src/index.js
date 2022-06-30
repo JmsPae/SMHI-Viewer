@@ -70,7 +70,21 @@ map.on('singleclick', function(evt) {
     onMapSingleClick(evt, map)
 });
 
+var datasetSelect = document.getElementById('dataset-select');
+datasetSelect.onchange = function() { 
+    if (datasetSelect.value != CurrentDataset) {
+        CurrentDataset = datasetSelect.value;
+        httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>{
+            onGetData(response, dataSource)
+            if (map.getView().getZoom() > 7) {
+                dataLayer.setStyle(Datasets[CurrentDataset].symbolNear);
+            }
+            else {
+                dataLayer.setStyle(Datasets[CurrentDataset].symbol);
+            }
+        });
+        
+    }
+}
 
-
-httpGetAsync("https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/"+Object.keys(Datasets[CurrentDataset].parameters)[0]+"/station-set/all/period/latest-hour/data.json", (response)=>onGetData(response, dataSource));
-
+httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>onGetData(response, dataSource));

@@ -49,7 +49,7 @@ const TemperatureSymbolNear = function(feature) {
                 points: 4,
                 radius: 10,
                 radius2: 0,
-                angle: (feature.get('stationValue') / 35) * (Math.PI/4),
+                angle: Math.pow(feature.get('stationValue') / 35, 2) * (Math.PI/4),
             }),
             text: new Text({
                 font: '20px sans',
@@ -75,10 +75,27 @@ const TemperatureSymbol = function(feature) {
                 points: 4,
                 radius: 10,
                 radius2: 0,
-                angle: (feature.get('stationValue') / 35) * (Math.PI/4),
+                angle: Math.pow(feature.get('stationValue') / 35, 2) * (Math.PI/4),
             })
         });
     return [cross];
 }
 
-export {TemperatureSymbol, TemperatureSymbolNear};
+const RadiationSymbol = function(feature) {
+    var cross = new Style({
+            image: new RegularShape({
+                fill: new Fill({color: 'red'}),
+                stroke: new Stroke({
+                    color: lerpPalette(feature.get('stationValue') / 1600), 
+                    width: 3
+                }),
+                points: 4,
+                radius: 10,
+                radius2: 0,
+                angle: (feature.get('stationValue') / 1600) * (Math.PI/4),
+            })
+        });
+    return [cross];
+}
+
+export {TemperatureSymbol, TemperatureSymbolNear, RadiationSymbol};
