@@ -51,7 +51,7 @@ var map = new Map({
         dataLayer
     ],
     view: new View({
-        center: olProj.fromLonLat([15.713, 62.508]),
+        center: olProj.fromLonLat([15.713, 62.508]), //Central Sweden
         zoom: 5
     })
 });
@@ -71,11 +71,15 @@ map.on('singleclick', function(evt) {
 });
 
 var datasetSelect = document.getElementById('dataset-select');
+datasetSelect.value = 'airTemperature'; //Default dataset
+
 datasetSelect.onchange = function() { 
     if (datasetSelect.value != CurrentDataset) {
         CurrentDataset = datasetSelect.value;
         httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>{
+            
             onGetData(response, dataSource)
+            
             if (map.getView().getZoom() > 7) {
                 dataLayer.setStyle(Datasets[CurrentDataset].symbolNear);
             }

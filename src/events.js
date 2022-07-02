@@ -58,7 +58,7 @@ function generateChart(stationData, chartId) {
             data: {
                 labels: dates,
                 datasets: [{
-                    label: '°C',
+                    label: Datasets[CurrentDataset].unit,
                     backgroundColor: 'rgb(100, 100, 100)',
                     borderColor: 'rgb(50, 50, 50)',
                     data: values,
@@ -112,7 +112,7 @@ function onMapSingleClick(evt, map) {
         let str = `
         <div>
             <b>${feat.get('stationName')}</b><br>
-            ${feat.get('stationValue')}°C<br>
+            ${feat.get('stationValue')}${Datasets[CurrentDataset].unit}<br>
             Quality: ${((feat.get('stationValueQuality') == 'G') ? "Checked and approved" : "Unchecked/Aggregated")}<br>
             ${formatUnixTime(feat.get('stationValueDate'))}<br>
         </div>\n`;
