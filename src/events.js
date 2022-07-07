@@ -109,20 +109,36 @@ function onMapSingleClick(evt, map) {
     );
 
     if (feat != null) {
-        let str = `
-        <div>
-            <b>${feat.get('stationName')}</b><br>
-            ${feat.get('stationValue')}${Datasets[CurrentDataset].unit}<br>
-            Quality: ${((feat.get('stationValueQuality') == 'G') ? "Checked and approved" : "Unchecked/Aggregated")}<br>
-            ${formatUnixTime(feat.get('stationValueDate'))}<br>
-        </div>\n`;
-        
+        let str = '';
+
+        if (feat.get('stationValue') != null) {
+            str = `
+            <div>
+                Station: <b>${feat.get('stationName')}</b><br>
+                ${feat.get('stationValue')}${Datasets[CurrentDataset].unit}<br>
+                ${formatUnixTime(feat.get('stationValueDate'))}<br>
+            </div>`;
+
+            for (let key in Datasets[CurrentDataset].parameters) {
+                str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
+            }
+        }
+        else {
+            str = `
+            <div>
+                Station: <b>${feat.get('stationName')}</b><br>
+                No Data last hour
+            </div>`;
+
+            for (let key in Datasets[CurrentDataset].parameters) {
+                str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
+            }
+        }
         
 
-        for (let key in Datasets[CurrentDataset].parameters) {
-            str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}" height="250px"></canvas></div>\n`;
-        }
-        document.getElementById('data').innerHTML = str;
+        
+        //document.getElementById('data').innerHTML = str;
+        $('#data').html(str);
 
         for (let key in Datasets[CurrentDataset].parameters) {
             let period = Datasets[CurrentDataset].parameters[key].period;
@@ -134,33 +150,47 @@ function onMapSingleClick(evt, map) {
         }
     }
     else {
-        document.getElementById('data').innerHTML = ""
+        //document.getElementById('data').innerHTML = ""
+        $('#data').html('');
     }
 }
 
 function onGetData(response, vectorSource) {
     vectorSource.clear();
-    var station_list = JSON.parse(response)['station'];
+    let station_list = JSON.parse(response)['station'];
 
+    let features = [];
+    
     for (var key in station_list) {
         if (station_list.hasOwnProperty(key)) {
             let station = station_list[key];
             if (station['value'] != null) {
 
-                let idx = station['value'].length - 1;
-                vectorSource.addFeature(new Feature({
+                let idx = station['value'].length - 1; // The value array starts with the oldest, for some reason.
+                
+                features.push(new Feature({
                     geometry: new Point(olProj.fromLonLat([station['longitude'], station['latitude']])),
                     stationId: station['key'],
                     stationName: station['name'],
                     stationValue: station['value'][idx]['value'],
-                    stationValueDate: station['value'][idx]['date'],
-                    stationValueQuality: station['value'][idx]['quality']
+                    stationValueDate: station['value'][idx]['date']
                 }));
                 
                 //console.log(station);
             }
+            else {
+                features.push(new Feature({
+                    geometry: new Point(olProj.fromLonLat([station['longitude'], station['latitude']])),
+                    stationId: station['key'],
+                    stationName: station['name'],
+                    stationValue: null,
+                }));
+            }
         }
     }
+
+
+    vectorSource.addFeatures(features);
 }
 
 export {onGetData, onStationData, onMapSingleClick, httpGetAsync};

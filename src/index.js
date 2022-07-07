@@ -40,7 +40,7 @@ var map = new Map({
     layers: [
         new TileLayer({
             source: new XYZ({
-                url: "https://api.maptiler.com/maps/basic-dark/{z}/{x}/{y}.png?key=L5nAdce4BguwWGwEyUgZ",
+                url: "https://api.maptiler.com/maps/darkmatter/{z}/{x}/{y}.png?key=L5nAdce4BguwWGwEyUgZ",
                 tileSize: 512,
                 crossOrigin: 'anonymous',
 
@@ -67,28 +67,32 @@ map.on('moveend', function(evt) {
 });
 
 map.on('singleclick', function(evt) {
-    onMapSingleClick(evt, map)
+    onMapSingleClick(evt, map);
 });
 
-var datasetSelect = document.getElementById('dataset-select');
-datasetSelect.value = 'airTemperature'; //Default dataset
-
-datasetSelect.onchange = function() { 
-    if (datasetSelect.value != CurrentDataset) {
-        CurrentDataset = datasetSelect.value;
-        httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>{
+$(document).ready(function() {
+    let datasetSelect = $('#dataset-select');
+    
+    datasetSelect.change(()=>{
+        if (datasetSelect.val() != CurrentDataset) {
+            CurrentDataset = datasetSelect.val();
+            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>{
+                
+                onGetData(response, dataSource)
+                
+                if (map.getView().getZoom() > 7) {
+                    dataLayer.setStyle(Datasets[CurrentDataset].symbolNear);
+                }
+                else {
+                    dataLayer.setStyle(Datasets[CurrentDataset].symbol);
+                }
+            });
             
-            onGetData(response, dataSource)
-            
-            if (map.getView().getZoom() > 7) {
-                dataLayer.setStyle(Datasets[CurrentDataset].symbolNear);
-            }
-            else {
-                dataLayer.setStyle(Datasets[CurrentDataset].symbol);
-            }
-        });
-        
-    }
-}
+        }
+    });
 
-httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>onGetData(response, dataSource));
+    CurrentDataset = datasetSelect.val()
+    httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Object.keys(Datasets[CurrentDataset].parameters)[0]}/station-set/all/period/latest-hour/data.json`, (response)=>onGetData(response, dataSource));
+});
+
+
