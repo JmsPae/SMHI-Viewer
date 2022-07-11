@@ -145,13 +145,13 @@ const RadiationSymbol = function(feature) {
             image: new RegularShape({
                 fill: new Fill({color: 'red'}),
                 stroke: new Stroke({
-                    color: lerpPalette(Math.max(Math.min((val-400) / 400, 1.0), 0.0)), 
+                    color: lerpPalette(Math.max(Math.min(val / 1000, 1.0), 0.0)), 
                     width: 3
                 }),
-                points: 4,
+                points: 3,
                 radius: 10,
                 radius2: 0,
-                angle: Math.max(Math.min((val-400) / 400, 1.0), 0.0) * (Math.PI/4),
+                angle: (val / 1000) * (Math.PI/4),
             })
         });
     }

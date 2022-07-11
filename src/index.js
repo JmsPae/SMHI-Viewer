@@ -106,6 +106,7 @@ $(document).ready(function() {
     });
 
     CurrentDataset = datasetSelect.val()
+
     httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[CurrentDataset].parameters[0].id}/station-set/all/period/latest-hour/data.json`, (response, status)=>onGetData(response, dataSource));
 });
 
