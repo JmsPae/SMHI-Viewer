@@ -9,6 +9,8 @@ import XYZ from 'ol/source/XYZ';
 import View from 'ol/View';
 import * as olProj from 'ol/proj';
 import * as GeoTIFFjs from 'geotiff';
+import * as olms from 'ol-mapbox-style'
+import VectorTileLayer from 'ol/layer/VectorTile';
 
 import { Datasets, CurrentDataset } from './datasets';
 
@@ -43,7 +45,11 @@ var dataLayer = new VectorLayer({
     source : dataSource,
     style : Datasets[CurrentDataset].symbol
 });
+dataLayer.set('name', 'dataLayer');
+dataLayer.setZIndex(5);
 
+const layer = new VectorTileLayer({declutter: true});
+olms.applyStyle(layer, 'https://api.maptiler.com/maps/darkmatter/style.json?key=L5nAdce4BguwWGwEyUgZ');
 
 var map = new Map({
     target: 'map',
@@ -54,15 +60,7 @@ var map = new Map({
     }),
 
     layers: [
-        new TileLayer({
-            source: new XYZ({
-                url: "https://api.maptiler.com/maps/darkmatter/{z}/{x}/{y}.png?key=L5nAdce4BguwWGwEyUgZ",
-                tileSize: 512,
-                crossOrigin: 'anonymous',
-
-                attributions:'<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a> <a href="https://www.smhi.se/data/oppna-data/villkor-for-anvandning-1.30622" target="_blank">&copy; SMHI</a> | Map by <a href="https://github.com/JmsPae" target="_blank">James P</a>',
-            }),
-        }),
+        layer,
 
         dataLayer
     ],

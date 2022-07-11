@@ -135,7 +135,12 @@ function onMapSingleClick(evt, map) {
         function(feature, layer) {
             feat = feature;
         },
-        { hitTolerance: 5 }
+        { 
+            hitTolerance: 5,
+            layerFilter: function(layer) {
+                return layer.get('name') != null;
+            }
+        }
     );
 
     if (feat != null) {
