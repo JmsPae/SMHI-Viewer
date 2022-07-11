@@ -1,40 +1,38 @@
-import { TemperatureSymbol, TemperatureSymbolNear, RadiationSymbol } from "./symbols";
+import { TemperatureSymbol, TemperatureSymbolNear, RadiationSymbol, PrecipitationSymbol } from "./symbols";
+
+class Parameter {
+    constructor(id, period, timeframe) {
+        this.id = id;
+        this.period = period;
+        this.timeframe = timeframe;
+    }
+};
+
+class Dataset {
+    constructor(unit, symbol, symbolNear, parameters) {
+        this.unit = unit;
+        this.symbol = symbol;
+        this.symbolNear = symbolNear;
+        this.parameters = parameters;
+    }
+}
 
 const Datasets = { 
 
-    'airTemperature': {
-        unit: '°C',
-        symbol: TemperatureSymbol,
-        symbolNear: TemperatureSymbolNear,
-
-        parameters: {//IDs according to the SMHI API specifications
-            '1': {
-                period: 'latest-day',
-                timeframe: 'Hourly',
-            },
-            '2': {
-                period: 'latest-months',
-                timeframe: 'Daily'
-            }
-        }
-    },
-    'radiation': {
-        unit: 'W/m²',
-        symbol: RadiationSymbol,
-        symbolNear: RadiationSymbol,
-
-        parameters: {//IDs according to the SMHI API specifications
-            '11': {
-                period: 'latest-day',
-                timeframe: 'Hourly',
-            },
-            '24': {
-                period: 'latest-day',
-                timeframe: 'Hourly',
-            }
-        }
-    },
-    
+    'airTemperature': new Dataset('°C', TemperatureSymbol, TemperatureSymbolNear, [
+        //IDs according to the SMHI API specifications.
+        //First Parameter will be displayed on the map. (hourly dataset)
+        new Parameter('1', 'latest-day', 'Hourly'),
+        new Parameter('2', 'latest-months', 'Daily')
+    ]),
+    'radiation': new Dataset('W/m²', RadiationSymbol, RadiationSymbol, [
+        new Parameter('11', 'latest-day', 'Hourly'),
+        new Parameter('24', 'latest-day', 'Hourly')
+    ]),
+    'precipitation': new Dataset('mm', PrecipitationSymbol, PrecipitationSymbol, [
+        new Parameter('7', 'latest-day', 'Hourly'),
+        new Parameter('5', 'latest-months', 'Daily')
+    ])
 };
 
 var CurrentDataset = 'airTemperature';

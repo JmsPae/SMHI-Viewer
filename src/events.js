@@ -8,8 +8,8 @@ import { Datasets, CurrentDataset } from './datasets';
 function httpGetAsync(theUrl, callback) {
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
+        if (xmlHttp.readyState == 4)
+            callback(xmlHttp.responseText, xmlHttp.status);
     }
     xmlHttp.open("GET", theUrl, true);
     xmlHttp.send(null);
@@ -70,7 +70,7 @@ function generateChart(stationData, chartId) {
                 maintainAspectRatio: false,
                 plugins: {
                     title: {
-                        display: true,
+                        display: false,
                         text: 'Hourly'
                     }
                 },
@@ -97,6 +97,36 @@ function onStationData(response, chartId) {
     generateChart(stationData, chartId);
 }
 
+function generateObservationInfo(feature) {
+    let str = '';
+    if (feature.get('stationValue') != null) {
+        str = `
+        <div>
+            Station: <b>${feature.get('stationName')}</b><br>
+            ${feature.get('stationValue')}${Datasets[CurrentDataset].unit}<br>
+            ${formatUnixTime(feature.get('stationValueDate'))}<br>
+            Network: ${feature.get('stationNetwork')}<br>
+        </div>`;
+
+        for (let key in Datasets[CurrentDataset].parameters) {
+            str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
+        }
+        return str;
+    }
+
+    str = `
+    <div>
+        Station: <b>${feature.get('stationName')}</b><br>
+        Network: ${feature.get('stationNetwork')}<br>
+        No Data last hour
+    </div>`;
+
+    for (let key in Datasets[CurrentDataset].parameters) {
+        str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
+    }
+    return str;
+}
+
 function onMapSingleClick(evt, map) {
     var feat = null;
     Charts.splice(0, Charts.length); //Clear Charts array
@@ -109,42 +139,13 @@ function onMapSingleClick(evt, map) {
     );
 
     if (feat != null) {
-        let str = '';
-
-        if (feat.get('stationValue') != null) {
-            str = `
-            <div>
-                Station: <b>${feat.get('stationName')}</b><br>
-                ${feat.get('stationValue')}${Datasets[CurrentDataset].unit}<br>
-                ${formatUnixTime(feat.get('stationValueDate'))}<br>
-            </div>`;
-
-            for (let key in Datasets[CurrentDataset].parameters) {
-                str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
-            }
-        }
-        else {
-            str = `
-            <div>
-                Station: <b>${feat.get('stationName')}</b><br>
-                No Data last hour
-            </div>`;
-
-            for (let key in Datasets[CurrentDataset].parameters) {
-                str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
-            }
-        }
-        
-
-        
-        //document.getElementById('data').innerHTML = str;
-        $('#data').html(str);
+        $('#data').html(generateObservationInfo(feat));
 
         for (let key in Datasets[CurrentDataset].parameters) {
             let period = Datasets[CurrentDataset].parameters[key].period;
-            console.log(key);
-            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${key}/station/${feat.get('stationId')}/period/${period}/data.json`,
-            (response) => {
+            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[CurrentDataset].parameters[key].id}/station/${feat.get('stationId')}/period/${period}/data.json`,
+            (response, status) => {
+                console.log(status);
                 onStationData(response, `dataChart${key}`);
             });
         }
@@ -172,23 +173,22 @@ function onGetData(response, vectorSource) {
                     geometry: new Point(olProj.fromLonLat([station['longitude'], station['latitude']])),
                     stationId: station['key'],
                     stationName: station['name'],
+                    stationNetwork: station['measuringStations'],
                     stationValue: station['value'][idx]['value'],
                     stationValueDate: station['value'][idx]['date']
                 }));
-                
-                //console.log(station);
             }
             else {
                 features.push(new Feature({
                     geometry: new Point(olProj.fromLonLat([station['longitude'], station['latitude']])),
                     stationId: station['key'],
                     stationName: station['name'],
+                    stationNetwork: station['measuringStations'],
                     stationValue: null,
                 }));
             }
         }
     }
-
 
     vectorSource.addFeatures(features);
 }

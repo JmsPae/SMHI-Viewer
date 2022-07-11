@@ -97,7 +97,7 @@ const TemperatureSymbolNear = function(feature) {
                 angle: (airTemp / tempMax) * (Math.PI/4),
             }),
             text: new Text({
-                font: '20px sans',
+                font: '20px sans-serif',
                 text: airTemp + "°C",
                 offsetX: 30,
                 offsetY: 20,
@@ -136,37 +136,50 @@ const TemperatureSymbol = function(feature) {
 }
 
 const RadiationSymbol = function(feature) {
-    var cross = new Style({
+    let val = feature.get('stationValue');
+
+    let cross = crossNoData;
+
+    if (val != null) {
+        cross = new Style({
             image: new RegularShape({
                 fill: new Fill({color: 'red'}),
                 stroke: new Stroke({
-                    color: lerpPalette((feature.get('stationValue')-400) / 400), 
+                    color: lerpPalette(Math.max(Math.min((val-400) / 400, 1.0), 0.0)), 
                     width: 3
                 }),
                 points: 4,
                 radius: 10,
                 radius2: 0,
-                angle: ((feature.get('stationValue')-400) / 400) * (Math.PI/4),
+                angle: Math.max(Math.min((val-400) / 400, 1.0), 0.0) * (Math.PI/4),
             })
         });
+    }
     return [cross];
 }
 
-const Precipitation = function(feature) {
-    var cross = new Style({
+const PrecipitationSymbol = function(feature) {
+    let val = feature.get('stationValue');
+
+    let cross = crossNoData;
+
+    if (val != null) {
+        cross = new Style({
             image: new RegularShape({
                 fill: new Fill({color: 'red'}),
                 stroke: new Stroke({
-                    color: lerpPalette((feature.get('stationValue')-400) / 400), 
+                    color: lerpPalette(Math.max(Math.min(val / 10, 1.0), 0.0)),
                     width: 3
                 }),
                 points: 4,
                 radius: 10,
                 radius2: 0,
-                angle: ((feature.get('stationValue')-400) / 400) * (Math.PI/4),
+                angle: Math.min(val / 1.0, 1.0) * (Math.PI/4),
             })
         });
+    }
+
     return [cross];
 }
 
-export {TemperatureSymbol, TemperatureSymbolNear, RadiationSymbol};
+export {TemperatureSymbol, TemperatureSymbolNear, RadiationSymbol, PrecipitationSymbol};
