@@ -4,38 +4,30 @@ import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import Map from 'ol/Map';
 import * as olControl from 'ol/control';
-import TileLayer from 'ol/layer/Tile';
-import XYZ from 'ol/source/XYZ';
 import View from 'ol/View';
 import * as olProj from 'ol/proj';
-import * as GeoTIFFjs from 'geotiff';
 import * as olms from 'ol-mapbox-style'
 import VectorTileLayer from 'ol/layer/VectorTile';
+import ImageLayer from 'ol/layer/Image';
+import Static from 'ol/source/ImageStatic';
+import {register} from 'ol/proj/proj4';
+import proj4 from 'proj4';
 
-import { Datasets, CurrentDataset } from './datasets';
+proj4.defs( // Precipitation radar is in SWEREF99 TM
+    'EPSG:3006',
+    '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+);
+register(proj4);
+
+import { Datasets, globalContext } from './datasets';
 
 import { httpGetAsync, onGetData, onStationData, onMapSingleClick } from './events';
 
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables)
 Chart.defaults.color = '#FFFFFF';
-
-
-async function downloadImage(imageSrc) {
-    const img = await fetch(imageSrc)
-    const imageBlob = await img.blob()
-    GeoTIFFjs.fromBlob(imageBlob).then( tiff=> {
-        tiff.getImage().then(image=>{
-            console.log(image.getBoundingBox());
-            console.log(image.getGDALNoData());
-        });
-        
-    });
-    
-    
-}
-
-//downloadImage('https://opendata-download-radar.smhi.se/api/version/1.0/area/sweden/product/comp/latest.tif');
+  
+//const imgLayer = new ImageLayer();
 
 var dataSource = new VectorSource({
     features: []
@@ -43,7 +35,10 @@ var dataSource = new VectorSource({
 
 var dataLayer = new VectorLayer({
     source : dataSource,
-    style : Datasets[CurrentDataset].symbol
+    style : Datasets[globalContext.CurrentDataset].symbol,
+    renderOrder: function(a, b){
+        return Math.abs(a.get('stationValue')) - Math.abs(b.get('stationValue')); // Display more extreme values first (4c < 14c, 2c < -10c, etc).
+    },
 });
 dataLayer.set('name', 'dataLayer');
 dataLayer.setZIndex(5);
@@ -61,23 +56,36 @@ var map = new Map({
 
     layers: [
         layer,
-
         dataLayer
     ],
     view: new View({
         center: olProj.fromLonLat([15.713, 62.508]), //Central Sweden (ish)
-        zoom: 5
+        zoom: 5,
     })
 });
 
 function updateSymbols() {
     if (map.getView().getZoom() > 7) {
-        dataLayer.setStyle(Datasets[CurrentDataset].symbolNear);
+        dataLayer.setStyle(Datasets[globalContext.CurrentDataset].symbolNear);
     }
     else {
-        dataLayer.setStyle(Datasets[CurrentDataset].symbol);
+        dataLayer.setStyle(Datasets[globalContext.CurrentDataset].symbol);
     }
 }
+
+/* Raster layer test
+setSource();
+function setSource() {
+    const source = new Static({
+      url: 'https://opendata-download-radar.smhi.se/api/version/latest/area/sweden/product/comp/latest.png',
+      crossOrigin: '',
+      projection: 'EPSG:3006',
+      imageExtent: [126648,5983984,1075693,7771252],
+      interpolate: false,
+    });
+    imgLayer.setSource(source);
+}
+*/
 
 map.on('moveend', function(evt) {
     updateSymbols();
@@ -91,9 +99,9 @@ $(document).ready(function() {
     let datasetSelect = $('#dataset-select');
     
     datasetSelect.change(()=>{
-        if (datasetSelect.val() != CurrentDataset) {
-            CurrentDataset = datasetSelect.val();
-            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[CurrentDataset].parameters[0].id}/station-set/all/period/latest-hour/data.json`, (response, status)=>{
+        if (datasetSelect.val() != globalContext.CurrentDataset) {
+            globalContext.CurrentDataset = datasetSelect.val();
+            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[globalContext.CurrentDataset].parameters[0].id}/station-set/all/period/latest-hour/data.json`, (response, status)=>{
                 
                 onGetData(response, dataSource)
                 
@@ -103,9 +111,9 @@ $(document).ready(function() {
         }
     });
 
-    CurrentDataset = datasetSelect.val()
+    globalContext.CurrentDataset = datasetSelect.val()
 
-    httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[CurrentDataset].parameters[0].id}/station-set/all/period/latest-hour/data.json`, (response, status)=>onGetData(response, dataSource));
+    httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[globalContext.CurrentDataset].parameters[0].id}/station-set/all/period/latest-hour/data.json`, (response, status)=>onGetData(response, dataSource));
 });
 
 

@@ -149,9 +149,8 @@ const RadiationSymbol = function(feature) {
                     width: 3
                 }),
                 points: 3,
-                radius: 10,
-                radius2: 0,
-                angle: (val / 1000) * (Math.PI/4),
+                radius: 2+Math.pow(val / 1000, 2)*13,
+                radius2: 0
             })
         });
     }

@@ -3,7 +3,7 @@ import Feature from 'ol/Feature';
 import * as olProj from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { Chart, Utils } from 'chart.js';
-import { Datasets, CurrentDataset } from './datasets';
+import { Datasets, globalContext } from './datasets';
 
 function httpGetAsync(theUrl, callback) {
     let xmlHttp = new XMLHttpRequest();
@@ -33,7 +33,7 @@ function generateChart(stationData, chartId) {
     let dates = [];
     let values = [];
 
-    for (var i in stationData) {
+    for (var i = Math.max(stationData.length - 73, 0); i < stationData.length; i++) {
         let dataPoint = stationData[i];
         if ('date' in dataPoint) {
             let date = new Date(dataPoint['date']);
@@ -58,7 +58,7 @@ function generateChart(stationData, chartId) {
             data: {
                 labels: dates,
                 datasets: [{
-                    label: Datasets[CurrentDataset].unit,
+                    label: Datasets[globalContext.CurrentDataset].unit,
                     backgroundColor: 'rgb(100, 100, 100)',
                     borderColor: 'rgb(50, 50, 50)',
                     data: values,
@@ -103,13 +103,16 @@ function generateObservationInfo(feature) {
         str = `
         <div>
             Station: <b>${feature.get('stationName')}</b><br>
-            ${feature.get('stationValue')}${Datasets[CurrentDataset].unit}<br>
+            ${feature.get('stationValue')}${Datasets[globalContext.CurrentDataset].unit}<br>
             ${formatUnixTime(feature.get('stationValueDate'))}<br>
             Network: ${feature.get('stationNetwork')}<br>
-        </div>`;
+        </div><br>`;
 
-        for (let key in Datasets[CurrentDataset].parameters) {
-            str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
+        for (let key in Datasets[globalContext.CurrentDataset].parameters) {
+            let param = Datasets[globalContext.CurrentDataset].parameters[key];
+            str += param.description;
+
+            str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div><br>\n`;
         }
         return str;
     }
@@ -121,7 +124,7 @@ function generateObservationInfo(feature) {
         No Data last hour
     </div>`;
 
-    for (let key in Datasets[CurrentDataset].parameters) {
+    for (let key in Datasets[globalContext.CurrentDataset].parameters) {
         str +=`<div class="chart-container${key}" style="height:250px"><canvas id="dataChart${key}"></canvas></div>\n`;
     }
     return str;
@@ -146,9 +149,9 @@ function onMapSingleClick(evt, map) {
     if (feat != null) {
         $('#data').html(generateObservationInfo(feat));
 
-        for (let key in Datasets[CurrentDataset].parameters) {
-            let period = Datasets[CurrentDataset].parameters[key].period;
-            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[CurrentDataset].parameters[key].id}/station/${feat.get('stationId')}/period/${period}/data.json`,
+        for (let key in Datasets[globalContext.CurrentDataset].parameters) {
+            let period = Datasets[globalContext.CurrentDataset].parameters[key].period;
+            httpGetAsync(`https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/${Datasets[globalContext.CurrentDataset].parameters[key].id}/station/${feat.get('stationId')}/period/${period}/data.json`,
             (response, status) => {
                 console.log(status);
                 onStationData(response, `dataChart${key}`);
